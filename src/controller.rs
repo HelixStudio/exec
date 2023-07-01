@@ -1,10 +1,19 @@
-use axum::Json;
-use std::fs;
+use axum::{extract::ConnectInfo, Json};
+use std::{fs, net::SocketAddr};
 use tokio::process::Command;
 
-use crate::{models::StatusResponse, utils::language};
+use crate::{
+    models::StatusResponse,
+    utils::{language, log::log_request},
+};
 
-pub async fn status() -> Json<StatusResponse> {
+const LOGGING: bool = false;
+
+pub async fn status(ConnectInfo(addr): ConnectInfo<SocketAddr>) -> Json<StatusResponse> {
+    if LOGGING {
+        log_request(addr, "status");
+    }
+
     let paths = fs::read_dir("./packages").unwrap();
 
     let mut did_pass: Vec<String> = vec![];
