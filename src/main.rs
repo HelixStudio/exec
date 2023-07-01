@@ -14,7 +14,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/api/v1/status", get(controller::status))
-        .route("/api/v1/runtimes", get(controller::placeholder))
+        .route("/api/v1/runtimes", get(controller::runtimes))
         .route("/api/v1/execute", get(controller::placeholder))
         .route("/", get(|| async { "Service is up!" }));
 

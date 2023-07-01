@@ -3,7 +3,7 @@ use std::{fs, net::SocketAddr};
 use tokio::process::Command;
 
 use crate::{
-    models::StatusResponse,
+    models::{LanguageMetadata, StatusResponse},
     utils::{language, log::log_request},
 };
 
@@ -46,6 +46,27 @@ pub async fn status(ConnectInfo(addr): ConnectInfo<SocketAddr>) -> Json<StatusRe
         passed: did_pass,
         failed: didnt_pass,
     })
+}
+
+pub async fn runtimes(ConnectInfo(addr): ConnectInfo<SocketAddr>) -> Json<Vec<LanguageMetadata>> {
+    if LOGGING {
+        log_request(addr, "runtimes");
+    }
+
+    let mut langs: Vec<LanguageMetadata> = vec![];
+
+    for path in fs::read_dir("./packages").unwrap() {
+        let dir = path.unwrap().path();
+        if dir.is_file() {
+            continue;
+        }
+
+        let metadata = language::get_metadata(&dir).expect("metadata should be present");
+
+        langs.push(metadata);
+    }
+
+    Json(langs)
 }
 
 pub async fn placeholder() -> axum::response::Html<&'static str> {

@@ -7,7 +7,7 @@ pub struct StatusResponse {
     pub failed: Vec<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct LanguageMetadata {
     pub language: String,
     pub speed_index: f32,
