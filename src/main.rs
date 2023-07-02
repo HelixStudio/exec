@@ -19,6 +19,7 @@ async fn main() {
         .route("/api/v1/status", get(controller::status))
         .route("/api/v1/runtimes", get(controller::runtimes))
         .route("/api/v1/execute", post(controller::execute))
+        .route("/api/v1/test", post(controller::test))
         .route("/", get(|| async { "Service is up!" }));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));

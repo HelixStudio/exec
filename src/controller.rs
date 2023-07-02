@@ -7,9 +7,11 @@ use std::{
 use tokio::process::Command;
 
 use crate::{
-    models::{ExecuteRequest, ExecuteResponse, LanguageMetadata, StatusResponse},
+    models::{
+        CodeTest, ExecuteRequest, ExecuteResponse, LanguageMetadata, StatusResponse, TestRequest,
+    },
     utils::{
-        code::{compile_code, execute_code, ProcInput, ProcLimit},
+        code::{compile_code, execute_code, test_code, ProcInput, ProcLimit},
         language,
         log::log_request,
     },
@@ -142,6 +144,63 @@ pub async fn execute(Json(body): Json<ExecuteRequest>) -> Json<ExecuteResponse> 
         run: run_result,
         compile: Some(comp_result),
     })
+}
+
+pub async fn test(Json(body): Json<TestRequest>) -> Json<Vec<CodeTest>> {
+    let metadata = language::find_metadata(body.language.clone()).unwrap();
+    let mut src: Option<String> = None;
+
+    let start = SystemTime::now();
+    let since_the_epoch = start
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards")
+        .as_millis()
+        .to_string();
+    let exec_dir = format!("task-{}", since_the_epoch).to_string();
+
+    let ext = metadata.extension.clone();
+
+    fs::create_dir(exec_dir.clone()).unwrap();
+    for file in body.files {
+        let path = format!("{}/{}", exec_dir, file.name);
+        fs::write(path.clone(), file.content).expect("Unable to write file");
+
+        if file.name.ends_with(ext.as_str()) {
+            src = Some(path);
+        }
+    }
+
+    let file = src.unwrap();
+
+    let _compile_result = compile_code(
+        metadata,
+        file.clone(),
+        ProcLimit {
+            timeout: body.compile_timeout,
+            memory_limit: body.compile_memory_limit,
+        },
+    )
+    .await
+    .unwrap();
+
+    let executable = file.replace(ext.as_str(), "out");
+    let mut result_tests: Vec<CodeTest> = vec![];
+
+    for test in body.tests {
+        let passed = test_code(executable.clone(), test.clone()).await;
+        result_tests.push(CodeTest {
+            input: test.input,
+            output: test.output,
+            run_timeout: test.run_timeout,
+            run_memory_limit: test.run_memory_limit,
+            points: if passed { test.points } else { Some(0) },
+            passed: Some(passed),
+        })
+    }
+
+    fs::remove_dir_all(exec_dir).unwrap();
+
+    Json(result_tests)
 }
 
 pub async fn _placeholder() -> axum::response::Html<&'static str> {

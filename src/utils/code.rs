@@ -9,7 +9,7 @@ use tokio::{
     time::Instant,
 };
 
-use crate::models::LanguageMetadata;
+use crate::models::{CodeTest, LanguageMetadata};
 
 pub struct ProcLimit {
     pub timeout: Option<i64>,
@@ -124,4 +124,26 @@ pub async fn execute_code(
         signal: 0,
         time: duration.as_millis(),
     })
+}
+
+pub async fn test_code(exec: String, test: CodeTest) -> bool {
+    let output = execute_code(
+        exec,
+        ProcInput {
+            stdin: Some(test.input),
+            args: None,
+        },
+        ProcLimit {
+            timeout: Some(test.run_timeout),
+            memory_limit: Some(test.run_memory_limit),
+        },
+    )
+    .await
+    .unwrap();
+
+    if output.stdout == test.output {
+        return true;
+    }
+
+    false
 }
