@@ -1,6 +1,7 @@
 {
   "language": "rust",
   "speed_index": 1.0,
+  "is_compiled": true,
   "extension": "rs",
   "aliases": []
 }

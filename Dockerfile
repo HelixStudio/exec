@@ -1,8 +1,8 @@
 FROM alpine:3.18
 
-RUN apk add --no-cache rust cargo
+RUN apk add --no-cache rust cargo clang
 
-WORKDIR /
+WORKDIR /exec
 
 COPY . .
 

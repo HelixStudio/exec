@@ -19,3 +19,18 @@ pub fn get_metadata(dir: &PathBuf) -> Option<LanguageMetadata> {
 
     Some(serde_json::from_str::<LanguageMetadata>(contents.as_str()).unwrap())
 }
+
+pub fn find_metadata(lang: String) -> Option<LanguageMetadata> {
+    for path in std::fs::read_dir("./packages/").unwrap() {
+        let dir = path.unwrap().path();
+        if !dir.is_dir() {
+            continue;
+        }
+
+        if dir.ends_with(lang.clone()) {
+            return get_metadata(&dir);
+        }
+    }
+
+    None
+}
