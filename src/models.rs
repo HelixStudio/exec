@@ -59,8 +59,6 @@ pub struct TestRequest {
     pub language: String,
     pub files: Vec<ExecuteRequestFiles>,
     pub tests: Vec<CodeTest>,
-    pub run_timeout: Option<i64>,
-    pub run_memory_limit: Option<i64>,
     pub compile_timeout: Option<i64>,
     pub compile_memory_limit: Option<i64>,
 }

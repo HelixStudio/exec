@@ -7,6 +7,7 @@ use axum::{
     Router,
 };
 use std::{env, net::SocketAddr};
+use tower_http::cors::CorsLayer;
 
 #[tokio::main]
 async fn main() {
@@ -20,7 +21,8 @@ async fn main() {
         .route("/api/v1/runtimes", get(controller::runtimes))
         .route("/api/v1/execute", post(controller::execute))
         .route("/api/v1/test", post(controller::test))
-        .route("/", get(|| async { "Service is up!" }));
+        .route("/", get(|| async { "Service is up!" }))
+        .layer(CorsLayer::permissive());
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     println!("listening on http://{}", addr);
