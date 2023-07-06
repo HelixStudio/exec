@@ -31,8 +31,30 @@ pub struct ProcResult {
     pub time: u128,
 }
 
-fn limit_process(child_handle: &Child, lim: ProcLimit) {
-    // TODO
+fn limit_process(lim: ProcLimit) -> (String, Vec<String>) {
+    const MAX_PROC_COUNT: u32 = 1024;
+    const MAX_OPEN_FILES: u32 = 1024;
+    const MAX_FILE_SIZE: u32 = 33554432; // 2^25
+
+    let timeout = lim.timeout.unwrap_or(10_000) / 1000; // 10 seconds
+    let memory = lim.memory_limit.unwrap_or(1_000_00); // 100kb
+
+    let call: Vec<String> = vec![
+        // timeout:
+        String::from("timeout"),
+        String::from("-s"),
+        String::from("9"),
+        format!("{}", timeout),
+        // prlimit:
+        String::from("prlimit"),
+        format!("--nproc={}", MAX_PROC_COUNT.to_string()),
+        format!("--nofile={}", MAX_OPEN_FILES.to_string()),
+        format!("--fsize={}", MAX_FILE_SIZE.to_string()),
+        format!("--stack={}", memory),
+    ];
+
+    // TODO: replace nice with another custom utility
+    return (String::from("nice"), call);
 }
 
 async fn time_process(child_handle: Child) -> (Output, Duration) {
@@ -64,7 +86,11 @@ pub async fn compile_code(
 
     let compiler_script = format!("./packages/{}/compile.sh", lang.language);
 
-    let child_handle = Command::new("sh")
+    let limits = limit_process(lim);
+
+    let child_handle = Command::new(limits.0)
+        .args(limits.1)
+        .arg("sh")
         .arg(compiler_script)
         .arg(filepath.clone())
         .arg(filepath.replace(lang.extension.as_str(), "out"))
@@ -72,8 +98,6 @@ pub async fn compile_code(
         .stderr(Stdio::piped())
         .spawn()
         .expect("Failed to spawn process");
-
-    limit_process(&child_handle, lim);
 
     let (res, duration) = time_process(child_handle).await;
 
@@ -84,7 +108,7 @@ pub async fn compile_code(
         stdout: stdout.clone(),
         stderr: stderr.clone(),
         output: if stderr.len() == 0 { stdout } else { stderr },
-        code: res.status.code().unwrap(),
+        code: res.status.code().unwrap_or(0),
         signal: 0,
         time: duration.as_millis(),
     })
@@ -95,21 +119,23 @@ pub async fn execute_code(
     input: ProcInput,
     lim: ProcLimit,
 ) -> Result<ProcResult, &'static str> {
-    let mut child_handle = Command::new(executable)
+    let limits = limit_process(lim);
+
+    let mut child_handle = Command::new(limits.0)
+        .args(limits.1)
+        .arg(executable)
         .args(&input.args.unwrap_or(vec![]))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .expect("Failed to spawn process");
+        .expect("Failed to spawn process"); // BUG when compile error
 
     if input.stdin.is_some() {
         let mut stdin = child_handle.stdin.take().unwrap();
         stdin.write(input.stdin.unwrap().as_bytes()).await.unwrap();
         drop(stdin);
     }
-
-    limit_process(&child_handle, lim);
 
     let (res, duration) = time_process(child_handle).await;
 
