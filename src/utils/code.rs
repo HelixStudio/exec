@@ -22,7 +22,7 @@ pub struct ProcInput {
     pub args: Option<Vec<String>>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ProcResult {
     pub stdout: String,
     pub stderr: String,
@@ -97,11 +97,7 @@ pub async fn compile_code(
 
     let compiler_script = format!("./packages/{}/compile.sh", lang.language);
 
-    let limits = limit_process(lim);
-
-    let child_handle = Command::new(limits.0)
-        .args(limits.1)
-        .arg("sh")
+    let child_handle = Command::new("sh")
         .arg(compiler_script)
         .arg(filepath.clone())
         .arg(filepath.replace(&format!(".{}", lang.extension), ".out"))
@@ -181,6 +177,8 @@ pub async fn test_code(exec: String, test: CodeTest) -> bool {
 
     if output.stdout == test.output {
         return true;
+    } else {
+        println!("got: {:?}", output);
     }
 
     false

@@ -44,7 +44,7 @@ pub struct ExecuteResponse {
     pub compile: Option<ProcResult>,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct CodeTest {
     pub input: String,
     pub output: String,
