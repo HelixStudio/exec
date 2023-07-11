@@ -156,7 +156,7 @@ pub async fn execute_code(
     Ok(ProcResult {
         stdout: stdout.clone(),
         stderr: stderr.clone(),
-        output: if stderr.len() == 0 { stdout } else { stderr },
+        output: if stdout.len() > 0 { stdout } else { stderr },
         code: res.status.code().unwrap_or(0),
         signal: 0,
         time: duration.as_millis(),
