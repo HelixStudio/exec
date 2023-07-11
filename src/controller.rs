@@ -131,7 +131,7 @@ pub async fn execute(Json(body): Json<ExecuteRequest>) -> Json<ExecuteResponse> 
         },
         ProcLimit {
             timeout: body.run_timeout,
-            memory_limit: body.run_timeout,
+            memory_limit: body.run_memory_limit,
         },
     )
     .await

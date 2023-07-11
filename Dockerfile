@@ -2,6 +2,8 @@ FROM alpine:3.18
 
 RUN apk add --no-cache rust cargo clang ghc
 
+RUN apk add --no-cache util-linux
+
 WORKDIR /exec
 
 COPY . .

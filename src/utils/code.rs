@@ -36,7 +36,7 @@ fn limit_process(lim: ProcLimit) -> (String, Vec<String>) {
     const MAX_OPEN_FILES: u32 = 1024;
     const MAX_FILE_SIZE: u32 = 33554432; // 2^25
 
-    let timeout = lim.timeout.unwrap_or(10_000) / 1000; // 10 seconds
+    let timeout = (lim.timeout.unwrap_or(2_000) as f64) / 1000.0; // convert ms to s => 10 seconds
     let memory = lim.memory_limit.unwrap_or(1_000_00); // 100kb
 
     let call: Vec<String> = vec![
@@ -51,9 +51,11 @@ fn limit_process(lim: ProcLimit) -> (String, Vec<String>) {
         format!("--nofile={}", MAX_OPEN_FILES.to_string()),
         format!("--fsize={}", MAX_FILE_SIZE.to_string()),
         format!("--stack={}", memory),
+        format!("--cpu={}", timeout),
     ];
 
-    // TODO: replace nice with another custom utility
+    println!("call: {:?}", call);
+
     return (String::from("nice"), call);
 }
 
@@ -146,7 +148,7 @@ pub async fn execute_code(
         stdout: stdout.clone(),
         stderr: stderr.clone(),
         output: if stderr.len() == 0 { stdout } else { stderr },
-        code: res.status.code().unwrap(),
+        code: res.status.code().unwrap_or(0),
         signal: 0,
         time: duration.as_millis(),
     })
