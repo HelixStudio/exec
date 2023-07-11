@@ -22,7 +22,7 @@ pub struct ProcInput {
     pub args: Option<Vec<String>>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize)]
 pub struct ProcResult {
     pub stdout: String,
     pub stderr: String,
@@ -85,7 +85,6 @@ async fn time_process(child_handle: Child) -> (Output, Duration) {
 pub async fn compile_code(
     lang: LanguageMetadata,
     filepath: String,
-    lim: ProcLimit,
 ) -> Result<ProcResult, &'static str> {
     if !lang.is_compiled {
         return Err("Language is not compiled");
@@ -177,8 +176,6 @@ pub async fn test_code(exec: String, test: CodeTest) -> bool {
 
     if output.stdout == test.output {
         return true;
-    } else {
-        println!("got: {:?}", output);
     }
 
     false

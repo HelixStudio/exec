@@ -105,17 +105,7 @@ pub async fn execute(Json(body): Json<ExecuteRequest>) -> Json<ExecuteResponse> 
 
     let file = src.unwrap();
 
-    let comp_result = compile_code(
-        metadata,
-        file.clone(),
-        ProcLimit {
-            timeout: body.compile_timeout,
-            memory_limit: body.compile_memory_limit,
-            in_container: Some(false),
-        },
-    )
-    .await
-    .unwrap();
+    let comp_result = compile_code(metadata, file.clone()).await.unwrap();
 
     let run_result = execute_code(
         file.replace(&format!(".{}", ext), ".out"),
@@ -167,17 +157,7 @@ pub async fn test(Json(body): Json<TestRequest>) -> Json<Vec<CodeTest>> {
 
     let file = src.unwrap();
 
-    let _compile_result = compile_code(
-        metadata,
-        file.clone(),
-        ProcLimit {
-            timeout: body.compile_timeout,
-            memory_limit: body.compile_memory_limit,
-            in_container: Some(false),
-        },
-    )
-    .await
-    .unwrap();
+    let _compile_result = compile_code(metadata, file.clone()).await.unwrap();
 
     let executable = file.replace(&format!(".{}", ext), ".out");
     let mut result_tests: Vec<CodeTest> = vec![];
