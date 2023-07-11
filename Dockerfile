@@ -8,6 +8,8 @@ WORKDIR /exec
 
 COPY . .
 
+RUN cd crate && sudo make install
+
 RUN cargo build --release
 
 EXPOSE 8080/tcp

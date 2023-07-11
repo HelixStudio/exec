@@ -40,6 +40,8 @@ fn limit_process(lim: ProcLimit) -> (String, Vec<String>) {
     let memory = lim.memory_limit.unwrap_or(1_000_00); // 100kb
 
     let call: Vec<String> = vec![
+        // container runtime:
+        String::from("crate"),
         // timeout:
         String::from("timeout"),
         String::from("-s"),
@@ -54,9 +56,7 @@ fn limit_process(lim: ProcLimit) -> (String, Vec<String>) {
         format!("--cpu={}", timeout),
     ];
 
-    println!("call: {:?}", call);
-
-    return (String::from("nice"), call);
+    return (String::from("sudo"), call);
 }
 
 async fn time_process(child_handle: Child) -> (Output, Duration) {
