@@ -1,18 +1,20 @@
 CC := clang
-_CFLAGS := -std=c11 -g -Wall
-CFLAGS := -std=c11 -O2
-LDFLAGS := -lseccomp 
+CFLAGS := -std=c99
+LDFLAGS :=
 TARGET := crate
 SRC := $(wildcard *.c)
 OBJ := $(SRC:.c=.o)
 
 all: build clean
 
+debug: CFLAGS += -g -Wall -DDEBUG
+debug: all
+
 build: $(OBJ)
 	$(CC) $(LDFLAGS) -o $(TARGET) $^
 
 %.o: %.c
-	$(CC) -o $@ -c $^ $(_CFLAGS)
+	$(CC) -o $@ -c $^ $(CFLAGS)
 
 clean:
 	rm -rf $(OBJ)
@@ -20,5 +22,6 @@ clean:
 run:
 	./$(TARGET)
 
+install: CFLAGS += -O2
 install: all
 	cp ./$(TARGET) /usr/bin/$(TARGET)

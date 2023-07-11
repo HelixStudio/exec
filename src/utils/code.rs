@@ -14,6 +14,7 @@ use crate::models::{CodeTest, LanguageMetadata};
 pub struct ProcLimit {
     pub timeout: Option<i64>,
     pub memory_limit: Option<i64>,
+    pub in_container: Option<bool>,
 }
 
 pub struct ProcInput {
@@ -38,10 +39,15 @@ fn limit_process(lim: ProcLimit) -> (String, Vec<String>) {
 
     let timeout = (lim.timeout.unwrap_or(2_000) as f64) / 1000.0; // convert ms to s => 10 seconds
     let memory = lim.memory_limit.unwrap_or(1_000_00); // 100kb
+    let in_container = lim.in_container.unwrap_or(false);
 
     let call: Vec<String> = vec![
         // container runtime:
-        String::from("crate"),
+        if in_container {
+            String::from("crate")
+        } else {
+            String::from("nice")
+        },
         // timeout:
         String::from("timeout"),
         String::from("-s"),
@@ -55,7 +61,10 @@ fn limit_process(lim: ProcLimit) -> (String, Vec<String>) {
         format!("--stack={}", memory),
         format!("--cpu={}", timeout),
     ];
-
+    // problems:
+    // needs sudo to run locally, everything is root in container
+    // even with root fails after mounting fs
+    // unknown issue
     return (String::from("sudo"), call);
 }
 
@@ -95,7 +104,7 @@ pub async fn compile_code(
         .arg("sh")
         .arg(compiler_script)
         .arg(filepath.clone())
-        .arg(filepath.replace(lang.extension.as_str(), "out"))
+        .arg(filepath.replace(&format!(".{}", lang.extension), ".out"))
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
@@ -164,6 +173,7 @@ pub async fn test_code(exec: String, test: CodeTest) -> bool {
         ProcLimit {
             timeout: Some(test.run_timeout),
             memory_limit: Some(test.run_memory_limit),
+            in_container: Some(true),
         },
     )
     .await

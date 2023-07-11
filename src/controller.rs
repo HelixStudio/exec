@@ -80,13 +80,6 @@ pub async fn runtimes(ConnectInfo(addr): ConnectInfo<SocketAddr>) -> Json<Vec<La
 }
 
 pub async fn execute(Json(body): Json<ExecuteRequest>) -> Json<ExecuteResponse> {
-    // TODO...
-    // https://github.com/engineer-man/piston/blob/919076e20924c1a267a4e1885d17c896c2e96c80/api/src/job.js#L113
-    // https://man7.org/linux/man-pages/man2/nice.2.html
-    // https://man7.org/linux/man-pages/man1/timeout.1.html
-    // https://man7.org/linux/man-pages/man1/prlimit.1.html
-    // https://github.com/sanpii/lxc-rs/blob/main/examples/run_command.rs https://github.com/servo/gaol/tree/master
-
     let metadata = language::find_metadata(body.language.clone()).unwrap();
     let mut src: Option<String> = None;
 
@@ -118,13 +111,14 @@ pub async fn execute(Json(body): Json<ExecuteRequest>) -> Json<ExecuteResponse> 
         ProcLimit {
             timeout: body.compile_timeout,
             memory_limit: body.compile_memory_limit,
+            in_container: Some(false),
         },
     )
     .await
     .unwrap();
 
     let run_result = execute_code(
-        file.replace(ext.as_str(), "out"),
+        file.replace(&format!(".{}", ext), ".out"),
         ProcInput {
             args: body.args,
             stdin: body.stdin,
@@ -132,6 +126,7 @@ pub async fn execute(Json(body): Json<ExecuteRequest>) -> Json<ExecuteResponse> 
         ProcLimit {
             timeout: body.run_timeout,
             memory_limit: body.run_memory_limit,
+            in_container: Some(true),
         },
     )
     .await
@@ -178,12 +173,13 @@ pub async fn test(Json(body): Json<TestRequest>) -> Json<Vec<CodeTest>> {
         ProcLimit {
             timeout: body.compile_timeout,
             memory_limit: body.compile_memory_limit,
+            in_container: Some(false),
         },
     )
     .await
     .unwrap();
 
-    let executable = file.replace(ext.as_str(), "out");
+    let executable = file.replace(&format!(".{}", ext), ".out");
     let mut result_tests: Vec<CodeTest> = vec![];
 
     for test in body.tests {
