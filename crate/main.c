@@ -41,6 +41,8 @@ int apply_syscall_filters(void) {
   }
 
   seccomp_load(ctx);
+
+  return EXIT_SUCCESS;
 }
 
 int mount_fs(void) {
