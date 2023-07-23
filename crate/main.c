@@ -12,7 +12,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include <seccomp.h>
+// #include <seccomp.h>
 
 #define STACK_SIZE (1024 * 1024)
 
@@ -27,20 +27,21 @@
 static char child_stack[STACK_SIZE];
 
 int apply_syscall_filters(void) {
-  prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+  // prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
 
-  scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_ALLOW);
-  if (!ctx) {
-    LOGE("seccomp_init");
-    return EXIT_FAILURE;
-  }
+  // scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_ALLOW);
+  // if (!ctx) {
+  //   LOGE("seccomp_init");
+  //   return EXIT_FAILURE;
+  // }
 
-  if (seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EACCES), SCMP_SYS(socket), 0) < 0) {
-    LOGE("seccomp_rule_add");
-    return EXIT_FAILURE;
-  }
+  // if (seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EACCES), SCMP_SYS(socket), 0) < 0)
+  // {
+  //   LOGE("seccomp_rule_add");
+  //   return EXIT_FAILURE;
+  // }
 
-  seccomp_load(ctx);
+  // seccomp_load(ctx);
 
   return EXIT_SUCCESS;
 }

@@ -1,6 +1,7 @@
 CC := clang
 CFLAGS := -std=c99
-LDFLAGS := -lseccomp 
+# LDFLAGS := -lseccomp
+LDFLAGS := -lseccomp
 TARGET := crate
 SRC := $(wildcard *.c)
 OBJ := $(SRC:.c=.o)
@@ -22,6 +23,6 @@ clean:
 run:
 	./$(TARGET)
 
-install: CFLAGS += -O2
+install: CFLAGS += -O2 -llibseccomp.a
 install: all
 	cp ./$(TARGET) /usr/bin/$(TARGET)
