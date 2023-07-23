@@ -166,11 +166,11 @@ pub async fn test(Json(body): Json<TestRequest>) -> Json<Vec<CodeTest>> {
         let passed = test_code(executable.clone(), test.clone()).await;
         result_tests.push(CodeTest {
             input: test.input,
-            output: test.output,
+            output: passed.1,
             run_timeout: test.run_timeout,
             run_memory_limit: test.run_memory_limit,
-            points: if passed { test.points } else { Some(0) },
-            passed: Some(passed),
+            points: if passed.0 { test.points } else { Some(0) },
+            passed: Some(passed.0),
         })
     }
 

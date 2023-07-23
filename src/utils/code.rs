@@ -158,7 +158,7 @@ pub async fn execute_code(
     })
 }
 
-pub async fn test_code(exec: String, test: CodeTest) -> bool {
+pub async fn test_code(exec: String, test: CodeTest) -> (bool, String) {
     let output = execute_code(
         exec,
         ProcInput {
@@ -174,9 +174,5 @@ pub async fn test_code(exec: String, test: CodeTest) -> bool {
     .await
     .unwrap();
 
-    if output.stdout == test.output {
-        return true;
-    }
-
-    false
+    (output.stdout == test.output, output.output)
 }

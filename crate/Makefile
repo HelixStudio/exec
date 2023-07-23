@@ -1,6 +1,6 @@
 CC := clang
 CFLAGS := -std=c99
-LDFLAGS :=
+LDFLAGS := -lseccomp 
 TARGET := crate
 SRC := $(wildcard *.c)
 OBJ := $(SRC:.c=.o)

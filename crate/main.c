@@ -8,8 +8,11 @@
 #include <unistd.h>
 
 #include <sys/mount.h>
+#include <sys/prctl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+#include <seccomp.h>
 
 #define STACK_SIZE (1024 * 1024)
 
@@ -22,6 +25,23 @@
 #endif
 
 static char child_stack[STACK_SIZE];
+
+int apply_syscall_filters(void) {
+  prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+
+  scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_ALLOW);
+  if (!ctx) {
+    LOGE("seccomp_init");
+    return EXIT_FAILURE;
+  }
+
+  if (seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EACCES), SCMP_SYS(socket), 0) < 0) {
+    LOGE("seccomp_rule_add");
+    return EXIT_FAILURE;
+  }
+
+  seccomp_load(ctx);
+}
 
 int mount_fs(void) {
   const char *source = "proc";
@@ -98,6 +118,7 @@ int main(int argc, char *argv[]) {
       clone(child_process, child_stack + STACK_SIZE, flags | SIGCHLD, argv + 1);
   if (pid == -1) {
     fprintf(stderr, "Not having root privileges, won't isolate the process.\n");
+    apply_syscall_filters();
     pid = clone(child_process, child_stack + STACK_SIZE, SIGCHLD, argv + 1);
   }
 
