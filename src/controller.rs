@@ -107,6 +107,16 @@ pub async fn execute(Json(body): Json<ExecuteRequest>) -> Json<ExecuteResponse> 
 
     let comp_result = compile_code(metadata, file.clone()).await.unwrap();
 
+    if !comp_result.stderr.is_empty() {
+        fs::remove_dir_all(exec_dir).unwrap();
+
+        return Json(ExecuteResponse {
+            language: body.language,
+            run: comp_result,
+            compile: None,
+        });
+    }
+
     let run_result = execute_code(
         file.replace(&format!(".{}", ext), ".out"),
         ProcInput {

@@ -22,7 +22,7 @@ pub struct ProcInput {
     pub args: Option<Vec<String>>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ProcResult {
     pub stdout: String,
     pub stderr: String,
